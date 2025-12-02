@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "std/http/server.ts": "https://deno.land/std@0.168.0/http/server.ts",
+    "resend": "https://esm.sh/resend@6.0.1"  
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window", "deno.unstable"]
+  }
+}

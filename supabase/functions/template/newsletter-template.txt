@@ -1,0 +1,10 @@
+Hi {{name}},
+
+Weekly digest:
+- New AI Tool: https://rbtechtalks.com/blog/new-ai-tool
+- React 19 video: https://rbtechtalks.com/videos/react-19
+- Advanced JS course: https://rbtechtalks.com/courses/advanced-js
+
+Unsubscribe: https://rbtechtalks.com/unsubscribe?token={{unsubscribe_token}}
+
+RBTechTalks Team
