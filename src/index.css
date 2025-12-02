@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RBTechTalks Design System - Tech-focused, modern aesthetic */
+
+@layer base {
+  :root {
+    /* Core Background & Text */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    /* Card System */
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 95%;
+    --card-border: 240 3.7% 15.9%;
+
+    /* Brand Colors - Tech Blues & Purples */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 217 91% 70%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    /* Accent - Electric Purple */
+    --accent: 270 91% 65%;
+    --accent-foreground: 0 0% 98%;
+    --accent-glow: 270 91% 75%;
+
+    /* Muted Colors */
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    /* Status Colors */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* UI Elements */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 217 91% 60%;
+
+    /* Design Tokens */
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(270 91% 65%));
+    --gradient-subtle: linear-gradient(180deg, hsl(240 10% 3.9%), hsl(240 10% 7%));
+    --gradient-card: linear-gradient(145deg, hsl(240 10% 7%), hsl(240 5% 9%));
+
+    /* Shadows & Effects */
+    --shadow-elegant: 0 20px 50px -10px hsl(217 91% 60% / 0.3);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.4);
+    --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.5);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+    background: hsl(var(--background));
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-inter font-semibold tracking-tight;
+  }
+
+  code {
+    @apply font-mono;
+  }
+}
+
+@layer components {
+  /* Tech Card Component */
+  .tech-card {
+    @apply bg-card border border-card-border rounded-xl shadow-[var(--shadow-card)] 
+           hover:shadow-[var(--shadow-elegant)] transition-[var(--transition-smooth)]
+           hover:scale-[1.02] hover:border-primary/20;
+    background: var(--gradient-card);
+  }
+
+  /* Hero Button Variant */
+  .btn-hero {
+    @apply bg-primary text-primary-foreground px-8 py-4 rounded-xl font-semibold
+           shadow-[var(--shadow-glow)] hover:shadow-[var(--shadow-elegant)]
+           transition-[var(--transition-bounce)] hover:scale-105
+           border border-primary/20 hover:border-primary/40;
+    background: var(--gradient-primary);
+  }
+
+  /* Accent Button Variant */
+  .btn-accent {
+    @apply bg-accent text-accent-foreground px-6 py-3 rounded-lg font-medium
+           transition-[var(--transition-smooth)] hover:scale-105
+           border border-accent/20 hover:border-accent/40;
+  }
+
+  /* Ghost Button Variant */
+  .btn-ghost {
+    @apply bg-transparent text-foreground px-6 py-3 rounded-lg font-medium
+           border border-border hover:border-primary/40 hover:bg-primary/10
+           transition-[var(--transition-smooth)];
+  }
+
+  /* Content Grid */
+  .content-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  /* Glow Text Effect */
+  .glow-text {
+    @apply bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent;
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease-in-out infinite;
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+  }
+
+  .fade-in-delay {
+    animation: fade-in 0.8s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
