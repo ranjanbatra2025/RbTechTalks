@@ -35,8 +35,8 @@ const Hero = () => {
             engaging videos, and structured courses designed to elevate your tech skills.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          {/* CTA Buttons - Hidden via Tailwind 'hidden' class */}
+          <div className="hidden flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <button className="btn-hero group">
               <span>Explore Content</span>
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

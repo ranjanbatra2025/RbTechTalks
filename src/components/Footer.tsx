@@ -1,33 +1,25 @@
 // Footer.jsx
-import { Code, Youtube, Github, Twitter, Linkedin, Mail, Heart } from "lucide-react";
+import { Code, Youtube, Github, Twitter, Linkedin, Mail, ArrowRight, Users, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from '../utils/supabaseClient';
-import WaitlistFooter from './WaitlistFooter';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { name: "YouTube", icon: Youtube, href: "#", color: "hover:text-red-500" },
-    { name: "GitHub", icon: Github, href: "#", color: "hover:text-white" },
-    { name: "Twitter", icon: Twitter, href: "#", color: "hover:text-blue-400" },
-    { name: "LinkedIn", icon: Linkedin, href: "#", color: "hover:text-blue-600" },
-    { name: "Email", icon: Mail, href: "#", color: "hover:text-primary" },
+    { name: "YouTube", icon: Youtube, href: "https://youtube.com", color: "hover:text-red-500" },
+    { name: "GitHub", icon: Github, href: "https://github.com", color: "hover:text-gray-300" },
+    { name: "Twitter", icon: Twitter, href: "https://twitter.com", color: "hover:text-sky-400" },
+    { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com", color: "hover:text-blue-600" },
+    { name: "Email", icon: Mail, href: "mailto:hello@rbtechtalks.com", color: "hover:text-primary" },
   ];
 
   const quickLinks = [
-    { name: "Blog", href: "#blog" },
-    { name: "Videos", href: "#videos" },
-    { name: "Courses", href: "#courses" },
-    { name: "About", href: "#about" },
-  ];
-
-  const resources = [
-    { name: "Newsletter", href: "#" },
-    { name: "Resources", href: "#" },
-    { name: "Community", href: "#" },
-    { name: "Contact", href: "#" },
+    { name: "Blog", href: "#blog", icon: "📝" },
+    { name: "Videos", href: "#videos", icon: "🎥" },
+    { name: "Courses", href: "#courses", icon: "📚" },
+    { name: "About", href: "#about", icon: "ℹ️" },
   ];
 
   const [email, setEmail] = useState('');
@@ -102,7 +94,7 @@ const Footer = () => {
 
       setMessage({
         type: 'success',
-        text: 'Subscribed! Check your inbox to confirm the subscription.',
+        text: 'Subscribed! Check your inbox to confirm.',
       });
       setEmail('');
     } catch (error) {
@@ -116,132 +108,179 @@ const Footer = () => {
     }
   };
 
+  const handleJoinWaitlist = () => {
+    // Implement waitlist join logic here, e.g., modal, redirect, or API call
+    window.open('/waitlist', '_blank'); // Example: Open waitlist page
+  };
+
   return (
-    <footer className="bg-muted/30 border-t border-border">
+    <footer className="bg-gradient-to-b from-muted/20 to-muted/40 border-t border-border/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main Footer Content */}
-        <div className="py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
-          <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
+        {/* Main Content Grid */}
+        <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Brand & Socials */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6 lg:col-span-1"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
                 <Code className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold glow-text">RBTechTalks</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                RBTechTalks
+              </span>
             </div>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Empowering developers and tech enthusiasts with quality content, tutorials, 
-              and courses. Join our community and level up your tech skills.
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
+              Empowering developers with premium tutorials, courses, and tech insights. Join the future of learning.
             </p>
-            
-            {/* Social Links */}
-            <div className="flex items-center space-x-4">
-              {socialLinks.map((social) => (
-                <a
+            <div className="flex items-center space-x-4 pt-1">
+              {socialLinks.map((social, index) => (
+                <motion.a
                   key={social.name}
                   href={social.href}
-                  className={`p-2 rounded-lg bg-card border border-card-border hover:border-primary/40 transition-all duration-200 ${social.color}`}
+                  className={`group p-2.5 rounded-xl bg-card/80 border border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 ${social.color} flex items-center justify-center w-10 h-10`}
                   aria-label={social.name}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
                 >
-                  <social.icon className="w-5 h-5" />
-                </a>
+                  <social.icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                </motion.a>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="lg:col-span-1 space-y-4"
+          >
+            <h4 className="font-semibold text-foreground text-base mb-4 flex items-center space-x-2">
+              <span>Quick Links</span>
+            </h4>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
+              {quickLinks.map((link, index) => (
                 <li key={link.name}>
-                  <a
+                  <motion.a
                     href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200"
+                    className="text-muted-foreground hover:text-primary transition-all duration-200 flex items-center space-x-2 group text-sm"
+                    initial={{ opacity: 0, x: 10 }}
+                    whileHover={{ x: 5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + index * 0.05 }}
                   >
-                    {link.name}
-                  </a>
+                    <span className="text-xs">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </motion.a>
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h3 className="font-semibold text-foreground mb-4">Resources</h3>
-            <ul className="space-y-3">
-              {resources.map((resource) => (
-                <li key={resource.name}>
-                  <a
-                    href={resource.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200"
-                  >
-                    {resource.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Waitlist Footer (New: Compact waitlist CTA) */}
-        <WaitlistFooter />
-
-        {/* Newsletter Section */}
-        <div className="py-8 border-t border-border">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-xl font-semibold mb-2">Stay Updated with Newsletter</h3>
-            <p className="text-muted-foreground mb-6">
-              Get the latest tech insights, tutorials, and course updates delivered to your inbox.
-            </p>
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <motion.input
-                className="flex-1 px-4 py-2 rounded-lg bg-card border border-card-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                disabled={isSubmitting}
-                whileFocus={{ scale: 1.02 }}
-              />
+        {/* Enhanced Side-by-Side CTAs */}
+        <div className="py-10 border-t border-border/30 bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center">
+            {/* Beta Access CTA */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center lg:text-left space-y-4"
+            >
+              <div className="inline-flex items-center space-x-2 bg-primary/10 px-3 py-1 rounded-full text-primary text-xs font-medium">
+                <Users className="w-3 h-3" />
+                <span>Exclusive Beta</span>
+              </div>
+              <h3 className="text-xl font-bold text-foreground">Ready for exclusive beta access?</h3>
+              <p className="text-muted-foreground text-sm">Be the first to experience cutting-edge features.</p>
               <motion.button
-                type="submit"
-                disabled={isSubmitting}
-                className={`btn-accent whitespace-nowrap ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                onClick={handleJoinWaitlist}
+                className="group inline-flex items-center space-x-2 bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {isSubmitting ? 'Submitting...' : 'Subscribe'}
+                <span>Join Now</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
               </motion.button>
-            </form>
-            <AnimatePresence>
-              {message.text && (
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  className={`mt-3 p-3 rounded-lg text-sm ${
-                    message.type === 'error' ? 'bg-red-500/20 text-red-500 border border-red-500/20' : 'bg-green-500/20 text-green-500 border border-green-500/20'
+            </motion.div>
+
+            {/* Newsletter CTA */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-center lg:text-right space-y-4"
+            >
+              <div className="inline-flex items-center justify-end lg:justify-start space-x-2 bg-accent/10 px-3 py-1 rounded-full text-accent text-xs font-medium">
+                <Send className="w-3 h-3" />
+                <span>Stay in the Loop</span>
+              </div>
+              <h3 className="text-xl font-bold text-foreground">Stay Updated</h3>
+              <p className="text-muted-foreground text-sm">Latest tech insights and updates straight to your inbox.</p>
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto lg:ml-auto">
+                <motion.input
+                  className="flex-1 px-4 py-3 rounded-xl bg-card border border-border/50 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 text-sm placeholder:text-muted-foreground"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  disabled={isSubmitting}
+                  whileFocus={{ scale: 1.02, borderColor: '#3b82f6' }}
+                />
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`inline-flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${isSubmitting 
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-secondary to-muted-foreground text-primary hover:from-primary/90 hover:to-accent/90 hover:text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   }`}
-                  role="alert"
-                  aria-live="polite"
+                  whileHover={isSubmitting ? {} : { scale: 1.05 }}
+                  whileTap={isSubmitting ? {} : { scale: 0.98 }}
                 >
-                  {message.text}
-                </motion.p>
-              )}
-            </AnimatePresence>
+                  <span>{isSubmitting ? 'Sending...' : 'Subscribe'}</span>
+                  <ArrowRight className={`w-4 h-4 ${isSubmitting ? '' : 'group-hover:translate-x-1 transition-transform duration-200'}`} />
+                </motion.button>
+              </form>
+              <AnimatePresence mode="wait">
+                {message.text && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className={`text-xs p-3 rounded-xl border max-w-sm mx-auto lg:ml-auto ${
+                      message.type === 'error' 
+                        ? 'bg-red-50/50 text-red-700 border-red-200/50' 
+                        : 'bg-green-50/50 text-green-700 border-green-200/50'
+                    }`}
+                    role="alert"
+                    aria-live="polite"
+                  >
+                    {message.text}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="py-6 border-t border-border flex flex-col sm:flex-row items-center justify-between">
-          <p className="text-muted-foreground text-sm">
-            © {currentYear} RBTechTalks. All rights reserved.
-          </p>
-          <p className="text-muted-foreground text-sm flex items-center mt-2 sm:mt-0">
-            Made with <Heart className="w-4 h-4 text-red-500 mx-1" fill="currentColor" /> for the tech community
-          </p>
+        {/* Copyright */}
+        <div className="py-6 border-t border-border/30 text-center">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            className="text-xs text-muted-foreground"
+          >
+            &copy; {currentYear} RBTechTalks. All rights reserved. | Built with ❤️ for the dev community.
+          </motion.p>
         </div>
       </div>
     </footer>
