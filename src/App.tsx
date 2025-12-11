@@ -8,8 +8,8 @@ import VideosPage from "@/pages/VideosPage"
 import VideoDetail from "@/pages/VideoDetail"
 import CoursesPage from "@/pages/CoursesPage"
 import AboutPage from "@/pages/AboutPage"
-import SignUpPage from "@/pages/SignUpPage"   // 👈 create this file
-import LoginPage from "@/pages/LoginPage"     // 👈 and this one
+import SignUpPage from "@/pages/SignUpPage"
+import LoginPage from "@/pages/LoginPage"     
 
 const App = () => {
   return (
