@@ -65,9 +65,9 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Desktop Auth & Theme Section */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Theme Toggle Button - New feature */}
+          {/* Desktop Auth Section & Mobile Theme Toggle + Menu */}
+          <div className="flex items-center space-x-2">
+            {/* Theme Toggle Button - Always visible on mobile and desktop */}
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-muted transition-all duration-200 group"
@@ -81,66 +81,69 @@ const Header = () => {
               )}
             </button>
 
-            {isLoggedIn ? (
-              <div className="relative">
-                <button
-                  onClick={toggleUserDropdown}
-                  className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-muted"
-                >
-                  {user.avatar ? (
-                    <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full" />
-                  ) : (
-                    <UserIcon className="w-6 h-6" />
+            {/* Desktop Auth Section */}
+            <div className="hidden md:flex items-center space-x-4">
+              {isLoggedIn ? (
+                <div className="relative">
+                  <button
+                    onClick={toggleUserDropdown}
+                    className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-muted"
+                  >
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full" />
+                    ) : (
+                      <UserIcon className="w-6 h-6" />
+                    )}
+                    <span className="text-sm font-medium hidden lg:block">{user.name}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-card border border-border/50 rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <Link
+                        to="/profile"
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
+                        onClick={() => setUserDropdownOpen(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Profile</span>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/5 hover:text-destructive transition-colors w-full"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
                   )}
-                  <span className="text-sm font-medium hidden lg:block">{user.name}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-card border border-border/50 rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <Link
-                      to="/profile"
-                      className="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
-                      onClick={() => setUserDropdownOpen(false)}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Profile</span>
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/5 hover:text-destructive transition-colors w-full"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={handleLogin}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 border border-border/50 rounded-lg hover:border-primary/30"
-                >
-                  Login
-                </button>
-                <Link
-                  to="/signup"
-                  className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-          </div>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={handleLogin}
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 border border-border/50 rounded-lg hover:border-primary/30"
+                  >
+                    Login
+                  </button>
+                  <Link
+                    to="/signup"
+                    className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors duration-200"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors duration-200"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -158,18 +161,6 @@ const Header = () => {
                   <span className="text-base">{item.name}</span>
                 </Link>
               ))}
-              {/* Mobile Theme Toggle - New feature */}
-              <button
-                onClick={() => {
-                  toggleTheme();
-                  setIsMenuOpen(false); // Close menu after toggle
-                }}
-                className="flex items-center justify-center space-x-3 p-3 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-muted group w-full"
-                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                <span className="text-base">Toggle Theme</span>
-              </button>
               {isLoggedIn ? (
                 <div className="space-y-2 pt-2 border-t border-border/50">
                   <div className="flex items-center space-x-3 p-3 text-sm text-muted-foreground">
