@@ -1,3 +1,4 @@
+/* index.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
@@ -8,6 +9,62 @@
 
 @layer base {
   :root {
+    /* Light Mode - Clean, bright, professional */
+    /* Core Background & Text */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.5%;
+
+    /* Card System */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.5%;
+    --card-border: 0 0% 89%;
+
+    /* Brand Colors - Tech Blues & Purples (unchanged for consistency) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 217 91% 70%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+
+    /* Accent - Electric Purple */
+    --accent: 270 91% 65%;
+    --accent-foreground: 0 0% 98%;
+    --accent-glow: 270 91% 75%;
+
+    /* Muted Colors */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Status Colors */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* UI Elements */
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 217 91% 60%;
+
+    /* Design Tokens */
+    --radius: 0.75rem;
+
+    /* Gradients - Adapted for light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(270 91% 65%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 96%));
+
+    /* Shadows & Effects - Softer for light mode */
+    --shadow-elegant: 0 20px 50px -10px hsl(217 91% 60% / 0.1);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.2);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px 0 hsl(0 0% 0% / 0.06);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .dark {
+    /* Dark Mode - Your original deep, immersive theme */
     /* Core Background & Text */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -51,7 +108,7 @@
     --gradient-subtle: linear-gradient(180deg, hsl(240 10% 3.9%), hsl(240 10% 7%));
     --gradient-card: linear-gradient(145deg, hsl(240 10% 7%), hsl(240 5% 9%));
 
-    /* Shadows & Effects */
+    /* Shadows & Effects - Deeper for dark mode */
     --shadow-elegant: 0 20px 50px -10px hsl(217 91% 60% / 0.3);
     --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.4);
     --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.5);
@@ -59,18 +116,24 @@
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground font-inter antialiased;
     background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -83,12 +146,13 @@
 }
 
 @layer components {
-  /* Tech Card Component */
+  /* Tech Card Component - Smooth theme transitions */
   .tech-card {
     @apply bg-card border border-card-border rounded-xl shadow-[var(--shadow-card)] 
            hover:shadow-[var(--shadow-elegant)] transition-[var(--transition-smooth)]
            hover:scale-[1.02] hover:border-primary/20;
     background: var(--gradient-card);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Hero Button Variant */

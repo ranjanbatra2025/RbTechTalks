@@ -141,12 +141,12 @@ const VideoSection = () => {
             <div className="flex items-center justify-center w-16 h-16 bg-red-600 rounded-full mx-auto mb-4">
               <Play className="w-8 h-8 text-white ml-1" fill="currentColor" />
             </div>
-            <h3 className="text-2xl font-bold mb-2">Subscribe to RBTechTalks</h3>
+            <h3 className="text-2xl font-bold mb-2">Subscribe to Ranjan Batra Tech Talks</h3>
             <p className="text-muted-foreground mb-6">
               Get notified when I upload new videos and tutorials
             </p>
             <a
-              href="https://www.youtube.com/@RBTechTalks" // Replace with your actual channel URL if different
+              href="https://www.youtube.com/@RanjanBatraTechTalks"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-accent"
@@ -160,4 +160,4 @@ const VideoSection = () => {
   );
 };
 
-export default VideoSection;
+export default VideoSection;  

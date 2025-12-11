@@ -1,12 +1,15 @@
+// components/Header.tsx - Updated with theme toggle
 import { useState } from "react";
-import { Menu, X, Code, Play, BookOpen, User, LogIn, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
+import { Menu, X, Code, Play, BookOpen, User, LogIn, LogOut, ChevronDown, User as UserIcon, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/context/ThemeContext"; // 👈 New import for theme
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState({ name: "John Doe", avatar: "" }); // Placeholder; integrate with real auth (e.g., Supabase)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme(); // 👈 Hook for theme
 
   const navItems = [
     { name: "Blog", to: "/blog", icon: Code },
@@ -35,7 +38,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo - Clickable to home */}
@@ -62,8 +65,22 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Desktop Auth Section */}
+          {/* Desktop Auth & Theme Section */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Theme Toggle Button - New feature */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-muted transition-all duration-200 group"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              ) : (
+                <Moon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              )}
+            </button>
+
             {isLoggedIn ? (
               <div className="relative">
                 <button
@@ -141,6 +158,18 @@ const Header = () => {
                   <span className="text-base">{item.name}</span>
                 </Link>
               ))}
+              {/* Mobile Theme Toggle - New feature */}
+              <button
+                onClick={() => {
+                  toggleTheme();
+                  setIsMenuOpen(false); // Close menu after toggle
+                }}
+                className="flex items-center justify-center space-x-3 p-3 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-muted group w-full"
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span className="text-base">Toggle Theme</span>
+              </button>
               {isLoggedIn ? (
                 <div className="space-y-2 pt-2 border-t border-border/50">
                   <div className="flex items-center space-x-3 p-3 text-sm text-muted-foreground">
