@@ -1,32 +1,34 @@
-// components/Header.tsx - Updated with theme toggle
+// components/Header.tsx - Updated with Venture Studio Tab
 import { useState } from "react";
-import { Menu, X, Code, Play, BookOpen, User, LogIn, LogOut, ChevronDown, User as UserIcon, Sun, Moon } from "lucide-react";
+import { 
+  Menu, X, Code, Play, BookOpen, User, LogIn, LogOut, 
+  ChevronDown, User as UserIcon, Sun, Moon, Rocket 
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import { useTheme } from "@/context/ThemeContext"; // 👈 New import for theme
+import { useTheme } from "@/context/ThemeContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState({ name: "John Doe", avatar: "" }); // Placeholder; integrate with real auth (e.g., Supabase)
+  const [user, setUser] = useState({ name: "John Doe", avatar: "" }); 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme(); // 👈 Hook for theme
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = [
     { name: "Blog", to: "/blog", icon: Code },
     { name: "Videos", to: "/videos", icon: Play },
     { name: "Courses", to: "/courses", icon: BookOpen },
+    { name: "Venture Studio", to: "/venture-studio", icon: Rocket }, // 👈 Added Venture Studio
     { name: "About", to: "/about", icon: User },
   ];
 
   const handleLogin = () => {
-    // Placeholder: Integrate with auth (e.g., supabase.auth.signInWithOAuth)
     console.log("Login clicked");
     setIsLoggedIn(true);
     setUser({ name: "John Doe", avatar: "" });
   };
 
   const handleLogout = () => {
-    // Placeholder: Integrate with auth (e.g., supabase.auth.signOut)
     console.log("Logout clicked");
     setIsLoggedIn(false);
     setUser(null);
@@ -41,7 +43,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo - Clickable to home */}
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group cursor-pointer transition-all duration-200 hover:scale-105">
             <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <Code className="w-5 h-5 text-white" />
@@ -52,7 +54,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {navItems.map((item) => (
               <Link
                 key={item.name}
@@ -60,14 +62,14 @@ const Header = () => {
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-all duration-300 group hover:scale-105"
               >
                 <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
-                <span>{item.name}</span>
+                <span className="whitespace-nowrap">{item.name}</span>
               </Link>
             ))}
           </nav>
 
           {/* Desktop Auth Section & Mobile Theme Toggle + Menu */}
           <div className="flex items-center space-x-2">
-            {/* Theme Toggle Button - Always visible on mobile and desktop */}
+            {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-muted transition-all duration-200 group"
