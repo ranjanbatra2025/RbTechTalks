@@ -1,5 +1,5 @@
 // Footer.tsx
-import { Code, Youtube, Github, Twitter, Linkedin, Mail, Send } from "lucide-react";
+import { Code, Youtube, Github, Twitter, Linkedin, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from '../utils/supabaseClient';
@@ -26,7 +26,7 @@ const Footer = () => {
     }
   }, [message.text]);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
       setMessage({ type: '', text: '' });
@@ -59,10 +59,10 @@ const Footer = () => {
         if (fetchError) throw fetchError;
         row = fetchData;
       } else {
-        // Generate UUID client-side to avoid needing a SELECT policy immediately after INSERT
+        // Generate UUID client-side
         const unsubscribeToken = crypto.randomUUID();
 
-        // If not exists, insert new record with generated token
+        // If not exists, insert new record
         const { data: insertData, error: insertError } = await supabase
           .from('newsletter')
           .insert([{ email: emailTrimmed, unsubscribe_token: unsubscribeToken }])
@@ -80,7 +80,7 @@ const Footer = () => {
       const unsubscribeUrl = `${FUNCTIONS_DOMAIN}/unsubscribe?token=${row.unsubscribe_token}`;
 
       const body = {
-        to: emailTrimmed,
+        to: emailTrimmed, // ✅ Sending to the actual user
         subject: 'Confirm your RBTechTalks subscription',
         html: `<p>Thanks for subscribing to RBTechTalks!</p>
                <p><a href="${confirmUrl}">Click here to confirm your subscription</a></p>
@@ -90,8 +90,16 @@ const Footer = () => {
 
       const res = await supabase.functions.invoke('send-email', { body });
 
-      if (res.error || (res.data && res.data.error)) {
-        throw res.error || new Error(res.data?.error || 'Failed to send confirmation email');
+      if (res.error) {
+        // Try to extract the real error message from the backend response
+        let backendErrorMsg = '';
+        try {
+            const errorBody = await res.error.context.json(); 
+            backendErrorMsg = errorBody.error || errorBody.message;
+        } catch {
+            backendErrorMsg = res.error.message;
+        }
+        throw new Error(backendErrorMsg || 'Failed to send confirmation email');
       }
 
       setMessage({
@@ -99,11 +107,19 @@ const Footer = () => {
         text: existing ? 'Welcome back! Confirmation resent to your inbox.' : 'Subscribed! Please check your inbox to confirm.',
       });
       setEmail('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Newsletter error:', error);
+      
+      let displayMsg = error.message || 'Something went wrong. Please try again.';
+      
+      // Keep friendly error message just in case
+      if (displayMsg.includes("only send testing emails to your own email")) {
+        displayMsg = "Subscription unavailable. Please try again later (Domain Verification Pending).";
+      }
+
       setMessage({
         type: 'error',
-        text: error.message || 'Something went wrong. Please try again.',
+        text: displayMsg,
       });
     } finally {
       setIsSubmitting(false);
@@ -224,4 +240,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;    
+export default Footer;
