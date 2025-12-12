@@ -130,9 +130,9 @@ const Hero = () => {
                   <Users className="w-4 h-4" />
                   <span>Exclusive Beta</span>
                 </div>
-                <h3 className="text-3xl font-bold text-white">Ready for exclusive beta access?</h3> {/* Force white for heading */}
+                <h3 className="text-3xl font-bold text-white">Ready to master Agentic AI? Join our exclusive beta course today.</h3> {/* Force white for heading */}
                 <p className="text-white/90 max-w-md"> {/* White/90 for subtle description */}
-                  Be the first to experience cutting-edge features and premium content.
+                  Unlock the future of intelligent systems with hands-on projects, expert-led modules on autonomous agents, real-world AI applications, and lifetime access to a thriving community of innovators—plus early drops of premium tools and updates that keep you ahead of the curve.
                 </p>
                 <motion.button
                   onClick={handleJoinWaitlist}
@@ -159,4 +159,4 @@ const Hero = () => {
   );
 };
 
-export default Hero; 
+export default Hero;  

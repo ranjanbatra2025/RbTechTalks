@@ -38,20 +38,42 @@ const Footer = () => {
         throw new Error('Invalid email format');
       }
 
-      const { error: upsertError } = await supabase
+      // Check if email already exists
+      const { data: existing, error: checkError } = await supabase
         .from('newsletter')
-        .upsert([{ email: emailTrimmed }], { onConflict: 'email' });
-
-      if (upsertError) throw upsertError;
-
-      const { data: row, error: fetchError } = await supabase
-        .from('newsletter')
-        .select('email, unsubscribe_token')
+        .select('id')
         .eq('email', emailTrimmed)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
-      if (!row) throw new Error('Failed to create subscription');
+      if (checkError) throw checkError;
+
+      let row;
+      if (existing) {
+        // If exists, fetch the row directly
+        const { data: fetchData, error: fetchError } = await supabase
+          .from('newsletter')
+          .select('email, unsubscribe_token')
+          .eq('email', emailTrimmed)
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+        row = fetchData;
+      } else {
+        // Generate UUID client-side to avoid needing a SELECT policy immediately after INSERT
+        const unsubscribeToken = crypto.randomUUID();
+
+        // If not exists, insert new record with generated token
+        const { data: insertData, error: insertError } = await supabase
+          .from('newsletter')
+          .insert([{ email: emailTrimmed, unsubscribe_token: unsubscribeToken }])
+          .select('email, unsubscribe_token')
+          .single();
+
+        if (insertError) throw insertError;
+        row = insertData;
+      }
+
+      if (!row) throw new Error('Failed to retrieve subscription details');
 
       const FUNCTIONS_DOMAIN = 'https://vvjaqiowlgkabmchvmhi.functions.supabase.co';
       const confirmUrl = `${FUNCTIONS_DOMAIN}/confirm-subscription?token=${row.unsubscribe_token}`;
@@ -69,12 +91,12 @@ const Footer = () => {
       const res = await supabase.functions.invoke('send-email', { body });
 
       if (res.error || (res.data && res.data.error)) {
-        throw res.error || new Error(res.data.error);
+        throw res.error || new Error(res.data?.error || 'Failed to send confirmation email');
       }
 
       setMessage({
         type: 'success',
-        text: 'Subscribed! Please check your inbox to confirm.',
+        text: existing ? 'Welcome back! Confirmation resent to your inbox.' : 'Subscribed! Please check your inbox to confirm.',
       });
       setEmail('');
     } catch (error) {
@@ -202,4 +224,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default Footer;    
