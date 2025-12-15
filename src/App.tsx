@@ -9,7 +9,8 @@ import VideoDetail from "@/pages/VideoDetail"
 import CoursesPage from "@/pages/CoursesPage"
 import AboutPage from "@/pages/AboutPage"
 import SignUpPage from "@/pages/SignUpPage"
-import LoginPage from "@/pages/LoginPage"     
+import LoginPage from "@/pages/LoginPage"
+import WaitlistPage from "@/pages/WaitlistPage" // 👈 Add this import for the waitlist route
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/waitlist" element={<WaitlistPage />} /> {/* 👈 Add this route to fix 404 */}
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/videos" element={<VideosPage />} />
