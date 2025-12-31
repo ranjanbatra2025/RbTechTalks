@@ -1,4 +1,3 @@
-// context/ThemeContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -23,22 +22,28 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('dark'); // Default to dark as per current site
-
-  useEffect(() => {
-    // Load initial theme from localStorage or system preference
-    const root = window.document.documentElement;
+  // 1. Initialize State
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Check local storage
     const savedTheme = localStorage.getItem('theme') as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme: Theme = savedTheme || (prefersDark ? 'dark' : 'light');
-    setTheme(initialTheme);
-  }, []);
+    
+    // If a user has a saved preference, respect it.
+    if (savedTheme) {
+      return savedTheme;
+    }
+    
+    // OTHERWISE: Force Default to 'light' (Ignore system settings)
+    return 'light'; 
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    // Remove both classes to ensure clean switch
+    
+    // 2. Force the class change immediately
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
+    
+    // 3. Save to storage so we remember their choice for next time
     localStorage.setItem('theme', theme);
   }, [theme]);
 

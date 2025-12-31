@@ -1,220 +1,311 @@
-// components/Header.tsx - Updated with Venture Studio Tab
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Menu, X, Code, Play, BookOpen, User, LogIn, LogOut, 
-  ChevronDown, User as UserIcon, Sun, Moon, Rocket 
+  ChevronDown, User as UserIcon, Sun, Moon, Rocket, Settings, CreditCard, Sparkles
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
 
 const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState({ name: "John Doe", avatar: "" }); 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  
+  // Mock Auth State
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState({ name: "Kartik", avatar: "" });
+  
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+
+  // Handle scroll effects
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setUserDropdownOpen(false);
+  }, [location]);
 
   const navItems = [
     { name: "Blog", to: "/blog", icon: Code },
     { name: "Videos", to: "/videos", icon: Play },
     { name: "Courses", to: "/courses", icon: BookOpen },
-    { name: "Venture Studio", to: "/venture-studio", icon: Rocket }, // 👈 Added Venture Studio
+    { name: "Venture Studio", to: "/venture-studio", icon: Rocket, badge: "New" },
     { name: "About", to: "/about", icon: User },
   ];
 
-  const handleLogin = () => {
-    console.log("Login clicked");
-    setIsLoggedIn(true);
-    setUser({ name: "John Doe", avatar: "" });
-  };
-
-  const handleLogout = () => {
-    console.log("Logout clicked");
-    setIsLoggedIn(false);
-    setUser(null);
-    setUserDropdownOpen(false);
-  };
-
-  const toggleUserDropdown = () => {
-    setUserDropdownOpen(!userDropdownOpen);
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm transition-all duration-300">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group cursor-pointer transition-all duration-200 hover:scale-105">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <Code className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
-              RBTechTalks
-            </span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.to}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-all duration-300 group hover:scale-105"
-              >
-                <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
-                <span className="whitespace-nowrap">{item.name}</span>
-              </Link>
-            ))}
-          </nav>
-
-          {/* Desktop Auth Section & Mobile Theme Toggle + Menu */}
-          <div className="flex items-center space-x-2">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-muted transition-all duration-200 group"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+    <>
+      <header 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+          ${isScrolled 
+            ? "h-16 bg-zinc-950/80 backdrop-blur-xl backdrop-saturate-150 border-b border-white/5 shadow-lg shadow-black/5" 
+            : "h-20 bg-transparent"
+          }`}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex items-center justify-between h-full">
+            
+            {/* --- LOGO SECTION --- */}
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2.5 group relative z-50 focus:outline-none"
             >
-              {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              ) : (
-                <Moon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              )}
-            </button>
+              {/* Logo Icon Container */}
+              <div className="relative w-9 h-9 flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-md ring-1 ring-white/20">
+                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 opacity-100" />
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <Code className="w-5 h-5 text-white relative z-10 drop-shadow-sm" strokeWidth={2.5} />
+              </div>
 
-            {/* Desktop Auth Section */}
-            <div className="hidden md:flex items-center space-x-4">
-              {isLoggedIn ? (
-                <div className="relative">
-                  <button
-                    onClick={toggleUserDropdown}
-                    className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors duration-200 p-2 rounded-lg hover:bg-muted"
-                  >
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full" />
-                    ) : (
-                      <UserIcon className="w-6 h-6" />
-                    )}
-                    <span className="text-sm font-medium hidden lg:block">{user.name}</span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-card border border-border/50 rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <Link
-                        to="/profile"
-                        className="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
-                        onClick={() => setUserDropdownOpen(false)}
-                      >
-                        <User className="w-4 h-4" />
-                        <span>Profile</span>
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/5 hover:text-destructive transition-colors w-full"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={handleLogin}
-                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 border border-border/50 rounded-lg hover:border-primary/30"
-                  >
-                    Login
-                  </button>
+              {/* Logo Text - ALWAYS WHITE */}
+              <span className="text-xl font-bold tracking-tight flex flex-col leading-none">
+                <span className="flex items-center gap-0.5">
+                  {/* RBTech is ALWAYS white now, with a drop shadow for legibility */}
+                  <span className="text-white drop-shadow-md">RBTech</span>
+                  {/* Talks is colored to pop */}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 drop-shadow-sm filter brightness-110">
+                    Talks
+                  </span>
+                </span>
+              </span>
+            </Link>
+
+            {/* --- DESKTOP NAVIGATION --- */}
+            <nav className="hidden md:flex items-center justify-center space-x-1">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.to;
+                // Navigation items adapt: If scrolled (dark bg), text is light. If top (transparent), text depends on theme.
+                const textColor = isScrolled 
+                  ? (isActive ? "text-white" : "text-zinc-400 hover:text-zinc-200")
+                  : (isActive ? "text-zinc-900 dark:text-white" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200");
+
+                return (
                   <Link
-                    to="/signup"
-                    className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                    key={item.name}
+                    to={item.to}
+                    className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 group ${textColor}`}
                   >
-                    Get Started
+                    {/* Hover Pill Background */}
+                    <span className={`absolute inset-0 rounded-full transition-all duration-300 
+                      ${isScrolled 
+                        ? "bg-white/10" 
+                        : "bg-zinc-100 dark:bg-zinc-800/50"
+                      }
+                      ${isActive ? "opacity-100 scale-100" : "opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100"}`} 
+                    />
+                    
+                    <span className="relative z-10 flex items-center space-x-1.5">
+                      <span>{item.name}</span>
+                      {item.badge && (
+                        <span className="flex h-4 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-1.5 text-[9px] font-bold text-white shadow-sm ring-1 ring-inset ring-white/20">
+                          {item.badge}
+                        </span>
+                      )}
+                    </span>
                   </Link>
-                </>
-              )}
-            </div>
+                );
+              })}
+            </nav>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors duration-200"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* --- ACTIONS SECTION --- */}
+            <div className="flex items-center space-x-2 sm:space-x-4 relative z-50">
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`relative group p-2 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20
+                  ${isScrolled 
+                    ? "text-zinc-400 hover:text-zinc-100 hover:bg-white/10" 
+                    : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  }`}
+                aria-label="Toggle Theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-5 h-5 transition-transform duration-500 group-hover:rotate-90" />
+                ) : (
+                  <Moon className="w-5 h-5 transition-transform duration-500 group-hover:-rotate-12" />
+                )}
+              </button>
+
+              {/* Divider */}
+              <div className={`h-5 w-px hidden md:block ${isScrolled ? "bg-white/10" : "bg-zinc-200 dark:bg-zinc-800"}`} />
+
+              <div className="hidden md:flex items-center space-x-3">
+                {isLoggedIn ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                      className={`flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full border transition-all duration-200 focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500/20
+                        ${isScrolled 
+                          ? "border-white/10 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-200" 
+                          : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:bg-white dark:hover:bg-zinc-800"
+                        }`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white ring-2 ring-white/20">
+                        {user.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : <UserIcon className="w-4 h-4" />}
+                      </div>
+                      <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform duration-300 ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Desktop Dropdown */}
+                    {userDropdownOpen && (
+                      <div className="absolute right-0 mt-3 w-64 p-1.5 rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl shadow-zinc-200/50 dark:shadow-black/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="px-3 py-3 mb-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{user.name}</p>
+                          <p className="text-xs text-zinc-500">Free Plan • <Link to="/upgrade" className="text-indigo-600 hover:underline">Upgrade</Link></p>
+                        </div>
+                        <div className="space-y-0.5">
+                          {[
+                            { name: "Profile", icon: User, to: "/profile" },
+                            { name: "Settings", icon: Settings, to: "/settings" },
+                            { name: "Billing", icon: CreditCard, to: "/billing" },
+                          ].map((item) => (
+                            <Link key={item.name} to={item.to} className="flex items-center w-full px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
+                              <item.icon className="w-4 h-4 mr-3" /> {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                        <div className="mt-1 pt-1 border-t border-zinc-100 dark:border-zinc-800/50">
+                          <button 
+                            onClick={() => { setIsLoggedIn(false); setUserDropdownOpen(false); }}
+                            className="flex items-center w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          >
+                            <LogOut className="w-4 h-4 mr-3" /> Sign out
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => setIsLoggedIn(true)} 
+                      className={`text-sm font-semibold px-4 py-2 transition-colors
+                        ${isScrolled 
+                          ? "text-zinc-300 hover:text-white" 
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                        }`}
+                    >
+                      Log in
+                    </button>
+                    <Link
+                      to="/signup"
+                      className={`group relative inline-flex h-9 items-center justify-center overflow-hidden rounded-full px-6 font-medium transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2
+                        ${isScrolled 
+                          ? "bg-white text-zinc-950 hover:bg-zinc-200 focus:ring-white focus:ring-offset-zinc-950" 
+                          : "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-zinc-500/20 dark:shadow-none focus:ring-zinc-400 dark:focus:ring-offset-zinc-900"
+                        }`}
+                    >
+                      <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
+                        <div className="relative h-full w-8 bg-white/20 dark:bg-black/10" />
+                      </div>
+                      <span className="flex items-center text-sm">
+                        Get Started <Sparkles className="w-3.5 h-3.5 ml-2 opacity-70" />
+                      </span>
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                className={`md:hidden relative p-2 rounded-xl transition-colors focus:outline-none
+                  ${isScrolled 
+                    ? "text-zinc-300 hover:bg-white/10" 
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  }`}
+                onClick={() => setIsMenuOpen(true)}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50 bg-background/80 animate-in slide-in-from-top-2 duration-200">
-            <nav className="flex flex-col space-y-4">
+      {/* --- MOBILE DRAWER (Modern Sheet) --- */}
+      <div 
+        className={`fixed inset-0 z-[60] md:hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] 
+        ${isMenuOpen ? "visible" : "invisible delay-300"}`}
+      >
+        {/* Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-zinc-900/20 dark:bg-black/40 backdrop-blur-sm transition-opacity duration-500
+          ${isMenuOpen ? "opacity-100" : "opacity-0"}`} 
+          onClick={() => setIsMenuOpen(false)} 
+        />
+        
+        {/* Drawer Content */}
+        <div 
+          className={`absolute top-0 right-0 w-full max-w-xs h-[100dvh] bg-white dark:bg-zinc-950 shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] border-l border-zinc-200 dark:border-zinc-800
+          ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+              <span className="font-bold text-lg text-zinc-900 dark:text-white">Menu</span>
+              <button onClick={() => setIsMenuOpen(false)} className="p-2 -mr-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.to}
-                  className="flex items-center space-x-3 text-muted-foreground hover:text-foreground transition-all duration-200 p-3 rounded-lg hover:bg-muted group"
                   onClick={() => setIsMenuOpen(false)}
+                  className="group flex items-center justify-between px-4 py-3.5 text-base font-medium text-zinc-600 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-2xl transition-all duration-200"
                 >
-                  <item.icon className="w-5 h-5 group-hover:text-primary transition-colors" />
-                  <span className="text-base">{item.name}</span>
+                  <div className="flex items-center space-x-4">
+                    <item.icon className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    <span>{item.name}</span>
+                  </div>
+                  {item.badge && (
+                    <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
+                  )}
                 </Link>
               ))}
+            </div>
+            
+            <div className="p-6 border-t border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900/50">
               {isLoggedIn ? (
-                <div className="space-y-2 pt-2 border-t border-border/50">
-                  <div className="flex items-center space-x-3 p-3 text-sm text-muted-foreground">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full" />
-                    ) : (
-                      <UserIcon className="w-6 h-6" />
-                    )}
-                    <span>{user.name}</span>
-                  </div>
-                  <Link
-                    to="/profile"
-                    className="flex items-center space-x-3 px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors rounded-lg"
-                    onClick={() => setIsMenuOpen(false)}
+                <div className="space-y-4">
+                   <div className="flex items-center space-x-3 px-2">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        {user.avatar ? <img src={user.avatar} className="w-full h-full rounded-full" /> : <UserIcon className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">{user.name}</p>
+                        <p className="text-xs text-zinc-500">Logged In</p>
+                      </div>
+                   </div>
+                  <button 
+                    onClick={() => { setIsLoggedIn(false); setIsMenuOpen(false); }}
+                    className="w-full flex items-center justify-center space-x-2 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium hover:bg-white dark:hover:bg-zinc-800 hover:text-red-600 transition-all shadow-sm"
                   >
-                    <User className="w-4 h-4" />
-                    <span>Profile</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-3 px-3 py-2 text-sm text-destructive hover:bg-destructive/5 hover:text-destructive transition-colors rounded-lg w-full"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
+                    <LogOut className="w-4 h-4" /> <span>Log Out</span>
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2 pt-2 border-t border-border/50">
-                  <button
-                    onClick={() => {
-                      handleLogin();
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-muted-foreground hover:text-primary transition-colors border border-border/50 rounded-lg hover:border-primary/30"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    <span>Login</span>
-                  </button>
-                  <Link
-                    to="/signup"
-                    className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <span>Get Started</span>
-                  </Link>
+                <div className="grid grid-cols-2 gap-4">
+                  <button onClick={() => { setIsLoggedIn(true); setIsMenuOpen(false); }} className="flex justify-center items-center px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-semibold hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-sm">Log In</button>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="flex justify-center items-center px-4 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-semibold shadow-lg shadow-zinc-900/10 hover:opacity-90 transition-opacity">Sign Up</Link>
                 </div>
               )}
-            </nav>
+            </div>
           </div>
-        )}
+        </div>
       </div>
-    </header>
+    </>
   );
 };
 

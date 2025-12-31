@@ -1,6 +1,5 @@
-// Hero.tsx – Updated with Venture Studio Stats
-import { ArrowRight, Code, Users, Loader2 } from "lucide-react";
-import heroImage from "@/assets/hero-bg.jpg";
+import { ArrowRight, Code, Play, BookOpen, Rocket, Loader2, Sparkles } from "lucide-react";
+import heroImage from "@/assets/hero-bg.png";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabaseClient";
@@ -10,7 +9,7 @@ const Hero = () => {
     blogs: 0,
     videos: 0,
     courses: 0,
-    ventures: 0, // 👈 New stat state
+    ventures: 0,
     loading: true,
   });
 
@@ -21,19 +20,18 @@ const Hero = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetches for all 4 categories
         const [blogsRes, videosRes, coursesRes, venturesRes] = await Promise.all([
           supabase.from('blogs').select('id', { count: 'exact', head: true }),
           supabase.from('videos').select('id', { count: 'exact', head: true }),
           supabase.from('courses').select('id', { count: 'exact', head: true }),
-          supabase.from('ventures').select('id', { count: 'exact', head: true }), // 👈 Fetch ventures
+          supabase.from('ventures').select('id', { count: 'exact', head: true }),
         ]);
 
         setStats({
           blogs: blogsRes.count ?? 0,
           videos: videosRes.count ?? 0,
           courses: coursesRes.count ?? 0,
-          ventures: venturesRes.count ?? 0, // 👈 Set count
+          ventures: venturesRes.count ?? 0,
           loading: false,
         });
       } catch (error) {
@@ -41,145 +39,121 @@ const Hero = () => {
         setStats(prev => ({ ...prev, loading: false }));
       }
     };
-
     fetchStats();
   }, []);
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.3 } },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50 } },
+  };
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={heroImage}
-          alt="RBTechTalks Hero Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <section className="relative min-h-[110vh] flex flex-col justify-center overflow-hidden bg-zinc-950 text-white">
+      
+      {/* Background Layer */}
+      <div className="absolute inset-0 z-0 select-none pointer-events-none">
+        <motion.div 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.5 }}
+          className="w-full h-full"
+        >
+          <img src={heroImage} alt="Background" className="w-full h-full object-cover opacity-50" />
+        </motion.div>
+        
+        {/* Gradients for readability */}
+        <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-zinc-950 via-zinc-950/50 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/20 blur-[120px] rounded-full mix-blend-screen" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-        <div className="max-w-5xl mx-auto space-y-12"> {/* Increased max-width for 4 columns */}
-
+      {/* Content Layer */}
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+        <motion.div variants={container} initial="hidden" animate="show" className="max-w-5xl mx-auto text-center">
+          
           {/* Badge */}
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
-            <Code className="w-4 h-4 text-primary mr-2" />
-            <span className="text-sm font-medium text-primary">Tech Content Creator</span>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Welcome to{" "}
-            <span className="glow-text">RBTechTalks</span>
-          </h1>
-
-          {/* Subheading */}
-          <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Dive deep into the world of technology with comprehensive blog posts,
-            engaging videos, structured courses, and innovative venture projects.
-          </p>
-
-          {/* Stats – Grid updated to 4 columns */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            
-            {/* 1. Blog Stats */}
-            <div className="text-center">
-              {stats.loading ? (
-                <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary/40" />
-              ) : (
-                <>
-                  <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
-                    {stats.blogs > 50 ? "50+" : stats.blogs}+
-                  </div>
-                  <div className="text-white/80 text-sm md:text-base">Blog Posts</div>
-                </>
-              )}
+          <motion.div variants={item} className="flex justify-center mb-8">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 backdrop-blur-md">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </span>
+              <span className="text-xs font-semibold tracking-wide text-indigo-200 uppercase">Venture Studio Live</span>
             </div>
+          </motion.div>
 
-            {/* 2. Video Stats */}
-            <div className="text-center">
-              {stats.loading ? (
-                <Loader2 className="w-10 h-10 mx-auto animate-spin text-accent/40" />
-              ) : (
-                <>
-                  <div className="text-3xl md:text-4xl font-bold text-accent mb-2">
-                    {stats.videos > 25 ? "25+" : stats.videos}+
-                  </div>
-                  <div className="text-white/80 text-sm md:text-base">Videos</div>
-                </>
-              )}
-            </div>
+          {/* Title */}
+          <motion.h1 variants={item} className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-white mb-8 text-balance">
+            Building the Future of <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50">Agentic AI & Tech.</span>
+          </motion.h1>
 
-            {/* 3. Course Stats */}
-            <div className="text-center">
-              {stats.loading ? (
-                <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary/40" />
-              ) : (
-                <>
-                  <div className="text-3xl md:text-4xl font-bold text-primary-glow mb-2">
-                    {stats.courses > 10 ? "10+" : stats.courses}+
-                  </div>
-                  <div className="text-white/80 text-sm md:text-base">Courses</div>
-                </>
-              )}
-            </div>
+          {/* Subtitle */}
+          <motion.p variants={item} className="text-lg md:text-xl text-zinc-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Master the next generation of technology. From comprehensive <span className="text-zinc-200">Full-Stack courses</span> to cutting-edge <span className="text-zinc-200">AI Ventures</span>.
+          </motion.p>
 
-            {/* 4. Venture Studio Stats (New) */}
-            <div className="text-center">
-              {stats.loading ? (
-                <Loader2 className="w-10 h-10 mx-auto animate-spin text-accent/40" />
-              ) : (
-                <>
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">
-                    {stats.ventures > 5 ? "5+" : stats.ventures}+
-                  </div>
-                  <div className="text-white/80 text-sm md:text-base">Ventures</div>
-                </>
-              )}
-            </div>
+          {/* Buttons */}
+          <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+            <button 
+              onClick={handleJoinWaitlist}
+              className="group relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 font-semibold text-white transition-all duration-200 bg-indigo-600 rounded-full hover:bg-indigo-700 hover:scale-105"
+            >
+              <span>Start Learning</span>
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 -z-10 rounded-full blur-xl bg-indigo-600/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </button>
+            <button className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 font-medium text-zinc-300 transition-all duration-200 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 hover:text-white backdrop-blur-sm">
+              Explore Ventures
+            </button>
+          </motion.div>
 
-          </div>
+          {/* Stats Grid */}
+          <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <StatCard icon={Code} label="Blog Posts" count={stats.blogs} loading={stats.loading} />
+            <StatCard icon={Play} label="Videos" count={stats.videos} loading={stats.loading} />
+            <StatCard icon={BookOpen} label="Courses" count={stats.courses} loading={stats.loading} />
+            <StatCard icon={Rocket} label="Ventures" count={stats.ventures} loading={stats.loading} />
+          </motion.div>
 
-          {/* Exclusive Beta CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-16 max-w-2xl mx-auto"
-          >
-            <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-md border border-primary/20 rounded-2xl p-8 shadow-2xl">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="inline-flex items-center space-x-2 bg-primary/20 px-4 py-2 rounded-full text-primary text-sm font-semibold">
-                  <Users className="w-4 h-4" />
-                  <span>Exclusive Beta</span>
+          {/* Beta Access Card */}
+          <motion.div variants={item} className="mt-16 mx-auto max-w-3xl">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-1">
+              <div className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <div className="flex flex-col md:flex-row items-center gap-6 p-6 rounded-xl bg-zinc-950/50">
+                <div className="flex-shrink-0 p-4 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+                  <Sparkles className="w-6 h-6 text-indigo-400" />
                 </div>
-                <h3 className="text-3xl font-bold text-white">Ready to master Agentic AI? Join our exclusive beta course today.</h3>
-                <p className="text-white/90 max-w-md">
-                  Unlock the future of intelligent systems with hands-on projects, expert-led modules on autonomous agents, real-world AI applications, and lifetime access to a thriving community.
-                </p>
-                <motion.button
-                  onClick={handleJoinWaitlist}
-                  className="group inline-flex items-center space-x-3 bg-gradient-to-r from-primary to-accent text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span>Join Now</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                </motion.button>
+                <div className="flex-1 text-left">
+                  <h3 className="text-lg font-semibold text-white mb-1">Agentic AI Beta Access</h3>
+                  <p className="text-sm text-zinc-400">Join 500+ developers building autonomous agents. Get early access to the protocol.</p>
+                </div>
+                <button onClick={handleJoinWaitlist} className="flex-shrink-0 px-5 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg transition-colors">
+                  Join Beta
+                </button>
               </div>
             </div>
           </motion.div>
-        </div>
-      </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
 };
+
+const StatCard = ({ icon: Icon, label, count, loading }: any) => (
+  <motion.div whileHover={{ y: -5 }} className="flex flex-col items-center justify-center p-6 rounded-2xl border border-white/5 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/10 transition-all duration-300">
+    <Icon className="w-6 h-6 text-indigo-400 mb-3" />
+    <div className="text-3xl font-bold text-white mb-1">
+      {loading ? <Loader2 className="w-6 h-6 animate-spin text-zinc-600" /> : <span>{count}+</span>}
+    </div>
+    <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{label}</div>
+  </motion.div>
+);
 
 export default Hero;
