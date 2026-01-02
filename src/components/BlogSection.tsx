@@ -7,121 +7,67 @@ const BlogSection = () => {
   const { data: blogPosts = [], error, isLoading } = useQuery({
     queryKey: ['blogPosts', 'latest'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blogs')
-        .select('id, title, subtitle, image_url, date, read_time, tags')
-        .order('date', { ascending: false })
-        .limit(3);
+      const { data, error } = await supabase.from('blogs').select('*').order('date', { ascending: false }).limit(3);
       if (error) throw error;
-      return data.map((b) => ({
-        id: b.id,
-        title: b.title,
-        excerpt: b.subtitle,
-        date: b.date,
-        readTime: `${b.read_time} min read`,
-        tags: b.tags || [], // Assume tags is an array in DB
-        image: b.image_url || 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop&q=60',
-      }));
+      return data;
     },
   });
 
-  if (isLoading) {
-    return (
-      <section id="blog" className="py-20 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xl text-muted-foreground">Loading...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section id="blog" className="py-20 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xl text-red-500">Failed to load blog posts: {error.message}</p>
-        </div>
-      </section>
-    );
-  }
+  if (isLoading) return <div className="py-20 text-center">Loading...</div>;
 
   return (
-    <section id="blog" className="py-20 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Latest <span className="glow-text">Blog Posts</span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            In-depth articles covering the latest trends, tutorials, and insights in technology
-          </p>
-        </div>
-
-        {/* Blog Grid */}
-        <div className="content-grid">
-          {blogPosts.map((post) => (
-            <article key={post.id} className="tech-card p-6 group cursor-pointer">
-              {/* Featured Image */}
-              <div className="relative mb-6 overflow-hidden rounded-lg">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-
-              {/* Content */}
-              <div className="space-y-4">
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
-                    >
-                      <Tag className="w-3 h-3 mr-1" />
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Title */}
-                <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2">
-                  {post.title}
-                </h3>
-
-                {/* Excerpt */}
-                <p className="text-muted-foreground line-clamp-3">
-                  {post.excerpt}
-                </p>
-
-                {/* Meta */}
-                <div className="flex items-center justify-between pt-4 border-t border-card-border">
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(post.date).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{post.readTime}</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {/* View All Button */}
-        <div className="text-center mt-12">
-          <Link to="/blog" className="btn-ghost group">
-            <span>View All Posts</span>
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+    <section id="blog" className="py-24 bg-[#020617]">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-end mb-16">
+          <div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Latest <span className="text-primary">Insights</span></h2>
+            <p className="text-slate-400 max-w-xl">Deep dives into Agentic AI, Software Architecture, and the future of web development.</p>
+          </div>
+          <Link to="/blog" className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all">
+            View All <ArrowRight className="w-5 h-5" />
           </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {blogPosts.map((post) => (
+            <Link key={post.id} to={`/blog/${post.id}`} className="group block">
+              <article className="h-full bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 group-hover:bg-white/[0.08] group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] group-hover:border-primary/50">
+                {/* Image Container */}
+                <div className="relative h-56 overflow-hidden">
+                  <img 
+                    src={post.image_url || 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800'} 
+                    alt={post.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 left-4">
+                     <span className="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/20 uppercase tracking-tighter">
+                        {post.tags?.[0] || "Tech"}
+                     </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-8">
+                  <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-4">
+                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(post.date).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {post.read_time} min</span>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-4 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                    {post.title}
+                  </h3>
+                  
+                  <p className="text-slate-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                    {post.subtitle}
+                  </p>
+
+                  <div className="flex items-center gap-2 text-primary font-bold text-sm">
+                    Read Story <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                  </div>
+                </div>
+              </article>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
