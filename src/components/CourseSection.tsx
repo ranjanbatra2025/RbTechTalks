@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "../utils/supabaseClient"
 import { useState } from "react"
-import { useAuth } from "../context/AuthContext"   // 👈 make sure this file exists as we discussed
+import { useAuth } from "../context/AuthContext"
 
 const CourseSection = () => {
   const [loadingId, setLoadingId] = useState<number | null>(null)
@@ -23,58 +23,64 @@ const CourseSection = () => {
   })
 
   const handleEnroll = async (courseId: number) => {
-    // Guard: Ensure course exists in loaded data
-    const course = courses.find(c => c.id === courseId)
+    // 1. Validate course existence
+    const course = courses.find((c: any) => c.id === courseId)
     if (!course) {
-      alert("Course not found. Please refresh and try again.")
+      alert("Course not found. Please refresh the page.")
       return
     }
 
-    // 🔐 If not logged in, send to login page with redirect back to courses
+    // 2. Auth Guard: Redirect to login if user is missing
     if (!user) {
-      const redirect = `/courses?courseId=${courseId}`
-      navigate(`/login?redirect=${encodeURIComponent(redirect)}`)
+      const redirectPath = `/courses?courseId=${courseId}`
+      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`)
       return
     }
 
     setLoadingId(courseId)
 
     try {
+      // 3. Prepare Payload
       const userId = user.id
       const payload = { courseId, userId }
-      console.log("Enrollment payload:", payload) // 👈 Log for debugging
+      
+      console.log(" Initiating enrollment:", payload)
 
       const apiUrl = `${import.meta.env.VITE_API_URL}/create-checkout-session`
-      console.log("Fetching:", apiUrl)
-
+      
+      // 4. API Call with Auth Header
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Use the anon key for RLS policies if needed, or your custom auth logic
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify(payload),
       })
 
+      // 5. Robust Error Handling
       if (!response.ok) {
         let errorData
         try {
           errorData = await response.json()
         } catch {
-          const errorText = await response.text()
-          errorData = { error: errorText }
+          const text = await response.text()
+          errorData = { error: text }
         }
-        console.error("API Error:", response.status, errorData) // 👈 Structured logging
-        throw new Error(`Payment init failed: ${response.status} - ${JSON.stringify(errorData)}`)
+        console.error(" Payment API Error:", response.status, errorData)
+        throw new Error(errorData.error || `Server error: ${response.status}`)
       }
 
+      // 6. Redirect to Stripe
       const { url } = await response.json()
-      if (!url) throw new Error("No checkout URL returned")
-
+      if (!url) throw new Error("Invalid response: No checkout URL provided.")
+      
       window.location.href = url
+
     } catch (err: any) {
-      console.error("Enroll error:", err)
-      alert(`Failed to enroll: ${err.message}. Check console for details.`)
+      console.error(" Enrollment Failed:", err)
+      alert(`Enrollment failed: ${err.message}. Please try again or contact support.`)
     } finally {
       setLoadingId(null)
     }
@@ -82,9 +88,10 @@ const CourseSection = () => {
 
   if (isLoading) {
     return (
-      <section id="courses" className="py-20 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xl text-muted-foreground">Loading courses...</p>
+      <section id="courses" className="py-24 bg-background min-h-[60vh] flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xl text-muted-foreground font-medium animate-pulse">Loading premium courses...</p>
         </div>
       </section>
     )
@@ -92,25 +99,42 @@ const CourseSection = () => {
 
   if (error) {
     return (
-      <section id="courses" className="py-20 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xl text-red-500">
-            Failed to load courses: {(error as Error).message}
+      <section id="courses" className="py-24 bg-background flex items-center justify-center">
+        <div className="text-center max-w-lg px-6">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          <h3 className="text-2xl font-bold text-foreground mb-2">Unable to Load Courses</h3>
+          <p className="text-muted-foreground mb-6">
+            {(error as Error).message || "Something went wrong while fetching data."}
           </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </section>
     )
   }
 
   return (
-    <section id="courses" className="py-20 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Featured <span className="glow-text">Courses</span>
+    <section id="courses" className="py-24 bg-background relative overflow-hidden">
+      {/* Decorative Background Elements for Depth */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/5 rounded-full blur-[100px] opacity-50 pointer-events-none" />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
+            <Star className="w-4 h-4 mr-2 fill-current" /> 
+            World-Class Learning
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight">
+            Featured <span className="glow-text">Masterclasses</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive courses designed to take your skills to the next level with practical projects
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Project-based curriculums designed to take you from beginner to industry-ready expert.
           </p>
         </div>
 
@@ -118,85 +142,108 @@ const CourseSection = () => {
           {courses.map((course: any) => (
             <div
               key={course.id}
-              className={`tech-card overflow-hidden group cursor-pointer relative ${
-                course.featured ? "ring-2 ring-primary/50" : ""
+              className={`tech-card group relative flex flex-col h-full ${
+                course.featured ? "ring-1 ring-primary/50 shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)]" : ""
               }`}
             >
               {course.featured && (
-                <div className="absolute top-4 left-4 z-10">
-                  <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
-                    Most Popular
+                <div className="absolute top-4 left-4 z-20">
+                  <span className="px-3 py-1 bg-primary text-white shadow-lg shadow-primary/25 rounded-full text-xs font-bold uppercase tracking-wider">
+                    Best Seller
                   </span>
                 </div>
               )}
-              <div className="relative overflow-hidden">
+              
+              {/* Image Container */}
+              <div className="relative overflow-hidden aspect-video rounded-t-xl bg-muted">
                 <img
                   src={course.image_url}
                   alt={course.title}
-                  className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
               </div>
-              <div className="p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium">
+
+              {/* Content */}
+              <div className="p-6 md:p-8 flex flex-col flex-grow relative">
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
+                    course.level === 'Beginner' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
+                    course.level === 'Intermediate' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                    'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                  }`}>
                     {course.level}
                   </span>
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{course.rating}</span>
+                  <div className="flex items-center space-x-1 bg-yellow-400/10 px-2 py-1 rounded text-yellow-600 dark:text-yellow-400">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-xs font-bold">{course.rating}</span>
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200">
+
+                <h3 className="text-2xl font-bold mb-3 text-card-foreground group-hover:text-primary transition-colors leading-tight">
                   {course.title}
                 </h3>
-                <p className="text-muted-foreground line-clamp-2">
+                
+                <p className="text-muted-foreground line-clamp-2 mb-6 text-sm leading-relaxed">
                   {course.description}
                 </p>
-                <div className="space-y-2">
-                  {course.features?.map((feature: string, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-2 text-sm"
-                    >
-                      <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span className="text-muted-foreground">{feature}</span>
+
+                {/* Features List */}
+                <div className="space-y-3 mb-8 flex-grow">
+                  {course.features?.slice(0, 3).map((feature: string, index: number) => (
+                    <div key={index} className="flex items-start space-x-3 text-sm group/feature">
+                      <CheckCircle className="w-5 h-5 text-primary/70 mt-0.5 group-hover/feature:text-primary transition-colors" />
+                      <span className="text-muted-foreground group-hover/feature:text-foreground transition-colors">{feature}</span>
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-card-border">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1">
+
+                {/* Footer Meta */}
+                <div className="flex items-center justify-between text-xs font-medium text-muted-foreground py-4 border-t border-border">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5">
                       <Clock className="w-4 h-4" />
                       <span>{course.duration}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center gap-1.5">
                       <Users className="w-4 h-4" />
-                      <span>{course.students}</span>
+                      <span>{Number(course.students).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-primary">
-                      {course.price}
+
+                {/* Price & Action */}
+                <div className="flex items-center justify-between pt-4 mt-auto">
+                  <div className="flex flex-col">
+                    <span className="text-3xl font-extrabold text-foreground tracking-tight">
+                      {course.price === 0 || course.price === "Free" ? "Free" : `$${course.price}`}
                     </span>
                     {course.original_price && (
-                      <span className="text-sm text-muted-foreground line-through">
-                        {course.original_price}
+                      <span className="text-sm text-muted-foreground line-through decoration-destructive/50">
+                        ${course.original_price}
                       </span>
                     )}
                   </div>
+                  
                   <button
                     onClick={() => handleEnroll(course.id)}
-                    disabled={loadingId === course.id || !user}  // 👈 Disable if not logged in
-                    className="btn-accent group flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loadingId === course.id}
+                    className="btn-accent group relative px-6 py-2.5 rounded-lg font-semibold text-white shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
                   >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    <span>
-                      {loadingId === course.id ? "Processing..." : user ? "Enroll" : "Log in to Enroll"}
+                    <span className="relative z-10 flex items-center gap-2">
+                      {loadingId === course.id ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>{user ? "Enroll Now" : "Login to Join"}</span>
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </span>
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               </div>
@@ -204,10 +251,10 @@ const CourseSection = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <Link to="/courses" className="btn-ghost group">
-            <span>View All Courses</span>
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+        <div className="text-center mt-20">
+          <Link to="/courses" className="btn-ghost inline-flex items-center gap-2 px-8 py-4 rounded-full text-lg group">
+            <span>Explore Full Catalog</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>

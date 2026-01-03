@@ -194,7 +194,7 @@ const BlogDetail = () => {
       });
   }, [post?.content]);
 
-  // 4. Active TOC Observer (The "Steve Jobs" Detail)
+  // 4. Active TOC Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -242,10 +242,11 @@ const BlogDetail = () => {
         {children}
       </a>
     ),
+    // Forced w-full h-auto to show full image without cropping
     img: ({ src, alt }: any) => (
       <figure className="my-12 group">
         <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-900">
-          <img src={src} alt={alt} className="w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" />
+          <img src={src} alt={alt} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-[1.02]" />
         </div>
         {alt && <figcaption className="text-center text-sm text-slate-500 mt-4 italic">Caption: {alt}</figcaption>}
       </figure>
@@ -260,7 +261,6 @@ const BlogDetail = () => {
     ol: ({ children }: any) => <ol className="list-decimal pl-6 mb-6 space-y-3 text-slate-300 marker:text-primary">{children}</ol>,
   };
 
-  // --- SKELETON LOADER (Perfection requires handling wait times) ---
   if (isLoading) return (
     <div className="min-h-screen bg-[#020617] pt-32 container mx-auto px-4 max-w-6xl">
       <div className="animate-pulse">
@@ -317,9 +317,9 @@ const BlogDetail = () => {
               </span>
             ))}
           </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-10 tracking-tighter leading-[1.05] text-balance bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/50">
-            {post.title}
-          </h1>
+          
+          {/* TITLE REMOVED FROM HERE AS REQUESTED */}
+
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm font-medium text-slate-400">
              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
                 <Calendar className="w-4 h-4 text-primary" /> 
@@ -339,9 +339,9 @@ const BlogDetail = () => {
         </header>
 
         {/* Hero Image */}
-        <div className="max-w-6xl mx-auto relative aspect-[21/9] mb-24 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 group">
+        <div className="max-w-6xl mx-auto relative mb-24 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 group">
           <div className="absolute inset-0 bg-indigo-500/10 mix-blend-overlay z-10"></div>
-          <img src={post.image_url || post.image} alt="" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+          <img src={post.image_url || post.image} alt="" className="w-full h-auto object-contain transition-transform duration-1000 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent z-20" />
         </div>
 
