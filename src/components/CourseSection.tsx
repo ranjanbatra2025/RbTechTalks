@@ -1,3 +1,4 @@
+// src/components/CourseSection.tsx
 import { BookOpen, Users, Clock, Star, ArrowRight, CheckCircle } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
@@ -22,15 +23,28 @@ const CourseSection = () => {
     },
   })
 
+  // Fetch all enrolled course IDs for the current user (efficient single query)
+  const { data: enrolledCourseIds = [] } = useQuery({
+    queryKey: ["userEnrollments", user?.id],
+    queryFn: async () => {
+      if (!user) return []
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("course_id")
+        .eq("user_id", user.id)
+      if (error) throw error
+      return data?.map((e: any) => e.course_id) || []
+    },
+    enabled: !!user,
+  })
+
   const handleEnroll = async (courseId: number) => {
-    // 1. Validate course existence
     const course = courses.find((c: any) => c.id === courseId)
     if (!course) {
       alert("Course not found. Please refresh the page.")
       return
     }
 
-    // 2. Auth Guard: Redirect to login if user is missing
     if (!user) {
       const redirectPath = `/courses?courseId=${courseId}`
       navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`)
@@ -40,46 +54,77 @@ const CourseSection = () => {
     setLoadingId(courseId)
 
     try {
-      // 3. Prepare Payload
       const userId = user.id
-      const payload = { courseId, userId }
-      
-      console.log(" Initiating enrollment:", payload)
 
-      const apiUrl = `${import.meta.env.VITE_API_URL}/create-checkout-session`
-      
-      // 4. API Call with Auth Header
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Use the anon key for RLS policies if needed, or your custom auth logic
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify(payload),
-      })
+      if (course.price === 0) {
+        // Free course: Direct enrollment
+        const { data: existing, error: checkError } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('course_id', courseId)
+          .maybeSingle()
 
-      // 5. Robust Error Handling
-      if (!response.ok) {
-        let errorData
-        try {
-          errorData = await response.json()
-        } catch {
-          const text = await response.text()
-          errorData = { error: text }
+        if (checkError) throw checkError
+        if (existing) {
+          alert('You are already enrolled in this course.')
+          setLoadingId(null)
+          return
         }
-        console.error(" Payment API Error:", response.status, errorData)
-        throw new Error(errorData.error || `Server error: ${response.status}`)
+
+        const { error: insertError } = await supabase
+          .from('enrollments')
+          .insert({ user_id: userId, course_id: courseId })
+
+        if (insertError) throw insertError
+
+        // Update student count
+        await supabase
+          .from('courses')
+          .update({ students: course.students + 1 })
+          .eq('id', courseId)
+
+        alert('Enrolled successfully! Redirecting to your course...')
+        navigate(`/courses/${courseId}`)
+      } else {
+        // Paid course: Stripe
+        const payload = { courseId, userId }
+        const apiUrl = `${import.meta.env.VITE_API_URL}/create-checkout-session`
+        
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          // Fixed: Proper async error handling without await in non-async callback
+          let errorMessage = `Server error: ${response.status}`;
+          try {
+            const errorJson = await response.json();
+            errorMessage = errorJson.error || errorMessage;
+          } catch {
+            try {
+              const errorText = await response.text();
+              errorMessage = errorText || errorMessage;
+            } catch {
+              // Fallback if even text() fails
+            }
+          }
+          throw new Error(errorMessage);
+        }
+
+        const { url } = await response.json()
+        if (!url) throw new Error("Invalid response: No checkout URL provided.")
+        
+        window.location.href = url
       }
 
-      // 6. Redirect to Stripe
-      const { url } = await response.json()
-      if (!url) throw new Error("Invalid response: No checkout URL provided.")
-      
-      window.location.href = url
-
     } catch (err: any) {
-      console.error(" Enrollment Failed:", err)
+      console.error("Enrollment Failed:", err)
       alert(`Enrollment failed: ${err.message}. Please try again or contact support.`)
     } finally {
       setLoadingId(null)
@@ -139,116 +184,134 @@ const CourseSection = () => {
         </div>
 
         <div className="content-grid">
-          {courses.map((course: any) => (
-            <div
-              key={course.id}
-              className={`tech-card group relative flex flex-col h-full ${
-                course.featured ? "ring-1 ring-primary/50 shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)]" : ""
-              }`}
-            >
-              {course.featured && (
-                <div className="absolute top-4 left-4 z-20">
-                  <span className="px-3 py-1 bg-primary text-white shadow-lg shadow-primary/25 rounded-full text-xs font-bold uppercase tracking-wider">
-                    Best Seller
-                  </span>
-                </div>
-              )}
-              
-              {/* Image Container */}
-              <div className="relative overflow-hidden aspect-video rounded-t-xl bg-muted">
-                <img
-                  src={course.image_url}
-                  alt={course.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
-              </div>
+          {courses.map((course: any) => {
+            const isEnrolled = user && enrolledCourseIds.includes(course.id)
+            const isLoadingThis = loadingId === course.id
 
-              {/* Content */}
-              <div className="p-6 md:p-8 flex flex-col flex-grow relative">
-                <div className="flex items-center justify-between mb-4">
-                  <span className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
-                    course.level === 'Beginner' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
-                    course.level === 'Intermediate' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                    'bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                  }`}>
-                    {course.level}
-                  </span>
-                  <div className="flex items-center space-x-1 bg-yellow-400/10 px-2 py-1 rounded text-yellow-600 dark:text-yellow-400">
-                    <Star className="w-3.5 h-3.5 fill-current" />
-                    <span className="text-xs font-bold">{course.rating}</span>
+            return (
+              <div
+                key={course.id}
+                className={`tech-card group relative flex flex-col h-full ${
+                  course.featured ? "ring-1 ring-primary/50 shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)]" : ""
+                }`}
+              >
+                {course.featured && (
+                  <div className="absolute top-4 left-4 z-20">
+                    <span className="px-3 py-1 bg-primary text-white shadow-lg shadow-primary/25 rounded-full text-xs font-bold uppercase tracking-wider">
+                      Best Seller
+                    </span>
                   </div>
-                </div>
-
-                <h3 className="text-2xl font-bold mb-3 text-card-foreground group-hover:text-primary transition-colors leading-tight">
-                  {course.title}
-                </h3>
+                )}
                 
-                <p className="text-muted-foreground line-clamp-2 mb-6 text-sm leading-relaxed">
-                  {course.description}
-                </p>
-
-                {/* Features List */}
-                <div className="space-y-3 mb-8 flex-grow">
-                  {course.features?.slice(0, 3).map((feature: string, index: number) => (
-                    <div key={index} className="flex items-start space-x-3 text-sm group/feature">
-                      <CheckCircle className="w-5 h-5 text-primary/70 mt-0.5 group-hover/feature:text-primary transition-colors" />
-                      <span className="text-muted-foreground group-hover/feature:text-foreground transition-colors">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Footer Meta */}
-                <div className="flex items-center justify-between text-xs font-medium text-muted-foreground py-4 border-t border-border">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4" />
-                      <span>{course.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Users className="w-4 h-4" />
-                      <span>{Number(course.students).toLocaleString()}</span>
-                    </div>
+                {/* Clickable Image → Opens course detail */}
+                <Link to={`/courses/${course.id}`}>
+                  <div className="relative overflow-hidden aspect-video rounded-t-xl bg-muted cursor-pointer">
+                    <img
+                      src={course.image_url}
+                      alt={course.title}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
                   </div>
-                </div>
+                </Link>
 
-                {/* Price & Action */}
-                <div className="flex items-center justify-between pt-4 mt-auto">
-                  <div className="flex flex-col">
-                    <span className="text-3xl font-extrabold text-foreground tracking-tight">
-                      {course.price === 0 || course.price === "Free" ? "Free" : `$${course.price}`}
+                {/* Content */}
+                <div className="p-6 md:p-8 flex flex-col flex-grow relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
+                      course.level === 'Beginner' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
+                      course.level === 'Intermediate' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                      'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                    }`}>
+                      {course.level}
                     </span>
-                    {course.original_price && (
-                      <span className="text-sm text-muted-foreground line-through decoration-destructive/50">
-                        ${course.original_price}
-                      </span>
-                    )}
+                    <div className="flex items-center space-x-1 bg-yellow-400/10 px-2 py-1 rounded text-yellow-600 dark:text-yellow-400">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-xs font-bold">{course.rating}</span>
+                    </div>
                   </div>
+
+                  {/* Clickable Title → Opens course detail */}
+                  <Link to={`/courses/${course.id}`}>
+                    <h3 className="text-2xl font-bold mb-3 text-card-foreground hover:text-primary transition-colors leading-tight cursor-pointer">
+                      {course.title}
+                    </h3>
+                  </Link>
                   
-                  <button
-                    onClick={() => handleEnroll(course.id)}
-                    disabled={loadingId === course.id}
-                    className="btn-accent group relative px-6 py-2.5 rounded-lg font-semibold text-white shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {loadingId === course.id ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>Processing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>{user ? "Enroll Now" : "Login to Join"}</span>
-                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </>
+                  <p className="text-muted-foreground line-clamp-2 mb-6 text-sm leading-relaxed">
+                    {course.description}
+                  </p>
+
+                  {/* Features List */}
+                  <div className="space-y-3 mb-8 flex-grow">
+                    {course.features?.slice(0, 3).map((feature: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3 text-sm group/feature">
+                        <CheckCircle className="w-5 h-5 text-primary/70 mt-0.5 group-hover/feature:text-primary transition-colors" />
+                        <span className="text-muted-foreground group-hover/feature:text-foreground transition-colors">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer Meta */}
+                  <div className="flex items-center justify-between text-xs font-medium text-muted-foreground py-4 border-t border-border">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" />
+                        <span>{course.duration}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-4 h-4" />
+                        <span>{Number(course.students).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price & Dynamic Action Button */}
+                  <div className="flex items-center justify-between pt-4 mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-3xl font-extrabold text-foreground tracking-tight">
+                        {course.price === 0 ? "Free" : `$${course.price}`}
+                      </span>
+                      {course.original_price && (
+                        <span className="text-sm text-muted-foreground line-through decoration-destructive/50">
+                          ${course.original_price}
+                        </span>
                       )}
-                    </span>
-                  </button>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        if (isEnrolled) {
+                          navigate(`/courses/${course.id}`)
+                        } else {
+                          handleEnroll(course.id)
+                        }
+                      }}
+                      disabled={isLoadingThis}
+                      className="btn-accent group relative px-6 py-2.5 rounded-lg font-semibold text-white shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        {isLoadingThis ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>
+                              {!user ? "Login to Join" : isEnrolled ? "View Course" : "Enroll Now"}
+                            </span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="text-center mt-20">

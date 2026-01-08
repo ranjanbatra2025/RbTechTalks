@@ -5,18 +5,35 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
+import { supabase } from "@/utils/supabaseClient"; // Adjust path if needed (same as in LoginPage)
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   
-  // Mock Auth State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState({ name: "Kartik", avatar: "" });
-  
+  // Real auth state from Supabase
+  const [session, setSession] = useState<any>(null);
+
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+
+  // Listen to Supabase auth changes
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for auth changes (login, logout, etc.)
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   // Handle scroll effects
   useEffect(() => {
@@ -41,6 +58,19 @@ const Header = () => {
     { name: "About", to: "/about", icon: User },
   ];
 
+  // Derive user info from real session
+  const isLoggedIn = !!session;
+  const userEmail = session?.user?.email || '';
+  const displayName = userEmail ? userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1) : 'User';
+  const userInitial = displayName.charAt(0).toUpperCase();
+
+  const handleLogout = async () => {
+    setUserDropdownOpen(false);
+    setIsMenuOpen(false);
+    await supabase.auth.signOut();
+    // Session will update automatically via listener
+  };
+
   return (
     <>
       <header 
@@ -58,20 +88,15 @@ const Header = () => {
               to="/" 
               className="flex items-center space-x-2.5 group relative z-50 focus:outline-none"
             >
-              {/* Logo Icon Container */}
               <div className="relative w-9 h-9 flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-md ring-1 ring-white/20">
                 <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 opacity-100" />
-                {/* Shine effect */}
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                 <Code className="w-5 h-5 text-white relative z-10 drop-shadow-sm" strokeWidth={2.5} />
               </div>
 
-              {/* Logo Text - ALWAYS WHITE */}
               <span className="text-xl font-bold tracking-tight flex flex-col leading-none">
                 <span className="flex items-center gap-0.5">
-                  {/* RBTech is ALWAYS white now, with a drop shadow for legibility */}
                   <span className="text-white drop-shadow-md">RBTech</span>
-                  {/* Talks is colored to pop */}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 drop-shadow-sm filter brightness-110">
                     Talks
                   </span>
@@ -83,7 +108,6 @@ const Header = () => {
             <nav className="hidden md:flex items-center justify-center space-x-1">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.to;
-                // Navigation items adapt: If scrolled (dark bg), text is light. If top (transparent), text depends on theme.
                 const textColor = isScrolled 
                   ? (isActive ? "text-white" : "text-zinc-400 hover:text-zinc-200")
                   : (isActive ? "text-zinc-900 dark:text-white" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200");
@@ -94,7 +118,6 @@ const Header = () => {
                     to={item.to}
                     className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 group ${textColor}`}
                   >
-                    {/* Hover Pill Background */}
                     <span className={`absolute inset-0 rounded-full transition-all duration-300 
                       ${isScrolled 
                         ? "bg-white/10" 
@@ -150,8 +173,8 @@ const Header = () => {
                           : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:bg-white dark:hover:bg-zinc-800"
                         }`}
                     >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white ring-2 ring-white/20">
-                        {user.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" /> : <UserIcon className="w-4 h-4" />}
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white/20">
+                        {userInitial}
                       </div>
                       <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform duration-300 ${userDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -160,7 +183,7 @@ const Header = () => {
                     {userDropdownOpen && (
                       <div className="absolute right-0 mt-3 w-64 p-1.5 rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl shadow-zinc-200/50 dark:shadow-black/50 animate-in fade-in slide-in-from-top-2 duration-200">
                         <div className="px-3 py-3 mb-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{user.name}</p>
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{displayName}</p>
                           <p className="text-xs text-zinc-500">Free Plan • <Link to="/upgrade" className="text-indigo-600 hover:underline">Upgrade</Link></p>
                         </div>
                         <div className="space-y-0.5">
@@ -176,7 +199,7 @@ const Header = () => {
                         </div>
                         <div className="mt-1 pt-1 border-t border-zinc-100 dark:border-zinc-800/50">
                           <button 
-                            onClick={() => { setIsLoggedIn(false); setUserDropdownOpen(false); }}
+                            onClick={handleLogout}
                             className="flex items-center w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                           >
                             <LogOut className="w-4 h-4 mr-3" /> Sign out
@@ -187,8 +210,9 @@ const Header = () => {
                   </div>
                 ) : (
                   <>
-                    <button 
-                      onClick={() => setIsLoggedIn(true)} 
+                    {/* Real redirect to login page */}
+                    <Link 
+                      to="/login"
                       className={`text-sm font-semibold px-4 py-2 transition-colors
                         ${isScrolled 
                           ? "text-zinc-300 hover:text-white" 
@@ -196,7 +220,7 @@ const Header = () => {
                         }`}
                     >
                       Log in
-                    </button>
+                    </Link>
                     <Link
                       to="/signup"
                       className={`group relative inline-flex h-9 items-center justify-center overflow-hidden rounded-full px-6 font-medium transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -232,19 +256,17 @@ const Header = () => {
         </div>
       </header>
 
-      {/* --- MOBILE DRAWER (Modern Sheet) --- */}
+      {/* --- MOBILE DRAWER --- */}
       <div 
         className={`fixed inset-0 z-[60] md:hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] 
         ${isMenuOpen ? "visible" : "invisible delay-300"}`}
       >
-        {/* Backdrop */}
         <div 
           className={`absolute inset-0 bg-zinc-900/20 dark:bg-black/40 backdrop-blur-sm transition-opacity duration-500
           ${isMenuOpen ? "opacity-100" : "opacity-0"}`} 
           onClick={() => setIsMenuOpen(false)} 
         />
         
-        {/* Drawer Content */}
         <div 
           className={`absolute top-0 right-0 w-full max-w-xs h-[100dvh] bg-white dark:bg-zinc-950 shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] border-l border-zinc-200 dark:border-zinc-800
           ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
@@ -280,16 +302,16 @@ const Header = () => {
               {isLoggedIn ? (
                 <div className="space-y-4">
                    <div className="flex items-center space-x-3 px-2">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                        {user.avatar ? <img src={user.avatar} className="w-full h-full rounded-full" /> : <UserIcon className="w-5 h-5" />}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold">
+                        {userInitial}
                       </div>
                       <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">{user.name}</p>
-                        <p className="text-xs text-zinc-500">Logged In</p>
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">{displayName}</p>
+                        <p className="text-xs text-zinc-500">{userEmail}</p>
                       </div>
                    </div>
                   <button 
-                    onClick={() => { setIsLoggedIn(false); setIsMenuOpen(false); }}
+                    onClick={handleLogout}
                     className="w-full flex items-center justify-center space-x-2 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-medium hover:bg-white dark:hover:bg-zinc-800 hover:text-red-600 transition-all shadow-sm"
                   >
                     <LogOut className="w-4 h-4" /> <span>Log Out</span>
@@ -297,8 +319,20 @@ const Header = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  <button onClick={() => { setIsLoggedIn(true); setIsMenuOpen(false); }} className="flex justify-center items-center px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-semibold hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-sm">Log In</button>
-                  <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="flex justify-center items-center px-4 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-semibold shadow-lg shadow-zinc-900/10 hover:opacity-90 transition-opacity">Sign Up</Link>
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsMenuOpen(false)} 
+                    className="flex justify-center items-center px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm font-semibold hover:bg-white dark:hover:bg-zinc-800 transition-all shadow-sm"
+                  >
+                    Log In
+                  </Link>
+                  <Link 
+                    to="/signup" 
+                    onClick={() => setIsMenuOpen(false)} 
+                    className="flex justify-center items-center px-4 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-semibold shadow-lg shadow-zinc-900/10 hover:opacity-90 transition-opacity"
+                  >
+                    Sign Up
+                  </Link>
                 </div>
               )}
             </div>
