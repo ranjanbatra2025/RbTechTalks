@@ -1,15 +1,16 @@
 // src/components/CourseSection.tsx
 import { BookOpen, Users, Clock, Star, ArrowRight, CheckCircle } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "../utils/supabaseClient"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 
 const CourseSection = () => {
   const [loadingId, setLoadingId] = useState<number | null>(null)
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const { data: courses = [], error, isLoading } = useQuery({
     queryKey: ["courses", "featured"],
@@ -38,7 +39,27 @@ const CourseSection = () => {
     enabled: !!user,
   })
 
-  const handleEnroll = async (courseId: number) => {
+  // Auto-enroll if user just logged in to enroll in a specific course
+  useEffect(() => {
+    if (!user || isLoading || courses.length === 0) return
+
+    const pendingIdStr = localStorage.getItem("pending_enroll_course_id")
+    if (!pendingIdStr) return
+
+    const pendingId = Number(pendingIdStr)
+    if (isNaN(pendingId)) {
+      localStorage.removeItem("pending_enroll_course_id")
+      return
+    }
+
+    // Only proceed if the course exists in the current list
+    if (courses.some((c: any) => c.id === pendingId)) {
+      handleEnroll(pendingId, true)
+      localStorage.removeItem("pending_enroll_course_id")
+    }
+  }, [user, isLoading, courses])
+
+  const handleEnroll = async (courseId: number, viaRedirect: boolean = false) => {
     const course = courses.find((c: any) => c.id === courseId)
     if (!course) {
       alert("Course not found. Please refresh the page.")
@@ -46,8 +67,10 @@ const CourseSection = () => {
     }
 
     if (!user) {
-      const redirectPath = `/courses?courseId=${courseId}`
-      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`)
+      // Store pending enrollment and redirect to login, returning to the current page
+      localStorage.setItem("pending_enroll_course_id", String(courseId))
+      const returnTo = `${location.pathname}${location.search}`
+      navigate(`/login?redirect=${encodeURIComponent(returnTo)}`)
       return
     }
 
@@ -74,7 +97,11 @@ const CourseSection = () => {
 
         const { error: insertError } = await supabase
           .from('enrollments')
-          .insert({ user_id: userId, course_id: courseId })
+          .insert({ 
+            user_id: userId, 
+            course_id: courseId,
+            via_login_redirect: viaRedirect   // ← NEW: Track if enrollment came via login redirect
+          })
 
         if (insertError) throw insertError
 
@@ -88,7 +115,11 @@ const CourseSection = () => {
         navigate(`/courses/${courseId}`)
       } else {
         // Paid course: Stripe
-        const payload = { courseId, userId }
+        const payload = { 
+          courseId, 
+          userId,
+          viaRedirect   // ← NEW: Pass flag to backend so webhook can record it
+        }
         const apiUrl = `${import.meta.env.VITE_API_URL}/create-checkout-session`
         
         const response = await fetch(apiUrl, {
@@ -101,7 +132,6 @@ const CourseSection = () => {
         })
 
         if (!response.ok) {
-          // Fixed: Proper async error handling without await in non-async callback
           let errorMessage = `Server error: ${response.status}`;
           try {
             const errorJson = await response.json();
@@ -110,9 +140,7 @@ const CourseSection = () => {
             try {
               const errorText = await response.text();
               errorMessage = errorText || errorMessage;
-            } catch {
-              // Fallback if even text() fails
-            }
+            } catch {}
           }
           throw new Error(errorMessage);
         }
@@ -131,6 +159,7 @@ const CourseSection = () => {
     }
   }
 
+  // ... rest of the component (loading/error/render) remains exactly the same
   if (isLoading) {
     return (
       <section id="courses" className="py-24 bg-background min-h-[60vh] flex items-center justify-center">
